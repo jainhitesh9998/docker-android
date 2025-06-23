@@ -185,11 +185,19 @@ env | grep ANDROID || echo "No ANDROID env vars found by grep."
 echo "Contents of android/local.properties one last time:"
 cat android/local.properties || echo "android/local.properties not found!"
 
-echo "Running npm run android:mosip..."
-# The Inji Wallet's package.json script for "android:mosip" might be:
-# "android:mosip": "cd android && ./gradlew clean && ./gradlew assembleMosipDebug && cd .."
-# We are already in the root, so let's assume it handles cd into android or uses -p android
-npm run android:mosip
+echo "Building Inji Wallet APK (residentappDebug)..."
+if [ -d "android" ]; then
+  cd android
+  echo "Changed directory to $(pwd) for Gradle build."
+  # Using :app:assembleResidentappDebug based on the variant used in run-android script (residentappDebug)
+  # and similar build:android:mosip script (which uses assembleResidentappRelease)
+  ./gradlew :app:assembleResidentappDebug
+  cd ..
+  echo "Changed directory back to $(pwd)."
+else
+  echo "Error: 'android' directory not found in $(pwd). Cannot run Gradle build."
+  exit 1
+fi
 
 # 5. Copy build artifacts to /build_output
 echo "Copying build artifacts..."
