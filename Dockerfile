@@ -46,6 +46,7 @@ RUN sdkmanager "platforms;android-34" \
     "platform-tools" \
     "cmdline-tools;latest" \
     "ndk;21.4.7075529" \
+    "ndk;23.1.7779620" \
     "cmake;3.22.1" \
     "build-tools;33.0.0"
 
