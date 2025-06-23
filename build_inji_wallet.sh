@@ -154,7 +154,10 @@ fi
 export DEBUG_KEYSTORE_ALIAS=androiddebugkey
 export DEBUG_KEYSTORE_PASSWORD=android
 
-# 3. Install npm dependencies
+# 3. Fix npm cache permissions and install dependencies
+echo "Fixing potential npm cache permission issues..."
+mkdir -p /root/.npm
+chown -R 1001:118 /root/.npm
 echo "Running npm install..."
 npm install
 
