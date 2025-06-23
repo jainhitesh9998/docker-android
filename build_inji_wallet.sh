@@ -154,12 +154,10 @@ fi
 export DEBUG_KEYSTORE_ALIAS=androiddebugkey
 export DEBUG_KEYSTORE_PASSWORD=android
 
-# 3. Fix npm cache permissions and install dependencies
-echo "Fixing potential npm cache permission issues..."
-mkdir -p /root/.npm
-chown -R 1001:118 /root/.npm
-echo "Running npm install..."
-npm install
+# 3. Install npm dependencies
+# Using --no-cache to avoid potential EACCES errors with /root/.npm cache when run as root.
+echo "Running npm install --no-cache..."
+npm install --no-cache
 
 # 4. Run the Android build command
 echo "Running npm run android:mosip..."
