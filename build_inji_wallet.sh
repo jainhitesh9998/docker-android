@@ -201,7 +201,7 @@ fi
 
 # 5. Copy build artifacts to /build_output
 echo "Copying build artifacts..."
-ARTIFACT_DIR="android/app/build/outputs/apk/mosip/debug"
+ARTIFACT_DIR="android/app/build/outputs/apk/residentapp/debug" # Corrected path
 if [ -d "$ARTIFACT_DIR" ] && [ -n "$(ls -A $ARTIFACT_DIR/*.apk 2>/dev/null)" ]; then
     echo "Found APKs in $ARTIFACT_DIR. Copying to /build_output/"
     cp -r ${ARTIFACT_DIR}/*.apk /build_output/
