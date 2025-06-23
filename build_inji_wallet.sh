@@ -155,11 +155,12 @@ export DEBUG_KEYSTORE_ALIAS=androiddebugkey
 export DEBUG_KEYSTORE_PASSWORD=android
 
 # 3. Install npm dependencies
-echo "Aggressively configuring npm directory and permissions..."
-mkdir -p /root/.npm/_logs /root/.npm/_cacache /root/.npm/_tmp
-chown -R 1001:118 /root/.npm
-echo "Running npm install --unsafe-perm..."
-npm install --unsafe-perm
+# Now running as non-root user 'nodeuser' (UID 1001), so npm will use /home/nodeuser/.npm
+# No need for chown /root/.npm or --unsafe-perm.
+echo "User context: $(id)"
+echo "NPM cache configured to: $(npm config get cache)" # Should be /home/nodeuser/.npm
+echo "Running npm install..."
+npm install
 
 # 4. Run the Android build command
 echo "Running npm run android:mosip..."
