@@ -12,7 +12,9 @@ DEFAULT_DOCKER_IMAGE_TAG="latest"
 # Construct the full image path, attempting to get OWNER/REPO from git remote
 # Default to a placeholder if not in a git repo or remote is not GitHub
 if git rev-parse --is-inside-work-tree > /dev/null 2>&1 && git config --get remote.origin.url &> /dev/null; then
-    REPO_FULL_NAME=$(git config --get remote.origin.url | sed -e 's/https://github.com\\///' -e 's/.git//')
+    # Use # as delimiter for sed to avoid issues with slashes in the URL
+    # Also, ensure .git is matched at the end of the string and . is escaped.
+    REPO_FULL_NAME=$(git config --get remote.origin.url | sed -e 's#https://github.com/##' -e 's#\.git$##')
     DOCKER_IMAGE="ghcr.io/${REPO_FULL_NAME}/${DEFAULT_DOCKER_IMAGE_NAME}:${DEFAULT_DOCKER_IMAGE_TAG}"
 else
     # Fallback if not in a git repo or no GitHub remote
