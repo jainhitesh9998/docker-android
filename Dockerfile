@@ -48,7 +48,8 @@ RUN sdkmanager "platforms;android-34" \
     "ndk;21.4.7075529" \
     "ndk;23.1.7779620" \
     "cmake;3.22.1" \
-    "build-tools;33.0.0"
+    "build-tools;33.0.0" \
+    "build-tools;30.0.3"
 
 # Install Node.js (you mentioned 16.x as default in your workflow, so this ensures it)
 # The `eclipse-temurin` image usually comes with Java, but we might need to update Node/npm.
