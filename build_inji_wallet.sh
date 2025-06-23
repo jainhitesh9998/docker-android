@@ -115,8 +115,13 @@ set -e # Exit immediately if a command exits with a non-zero status.
 echo "--- Inside Docker Container ---"
 echo "Working directory: $(pwd)" # Should be /app/inji-wallet
 
-echo "ANDROID_SDK_ROOT is: $ANDROID_SDK_ROOT"
-echo "JAVA_HOME is: $JAVA_HOME"
+echo "Initial ANDROID_SDK_ROOT (from Docker ENV): $ANDROID_SDK_ROOT"
+echo "Initial JAVA_HOME (from Docker ENV): $JAVA_HOME"
+
+# Explicitly set ANDROID_HOME for this script's execution environment
+export ANDROID_HOME="${ANDROID_SDK_ROOT}"
+echo "ANDROID_HOME explicitly set to: ${ANDROID_HOME}"
+
 java -version
 node -v
 npm -v
@@ -124,11 +129,14 @@ yarn --version
 expo --version
 
 # 1. Ensure android/local.properties points to the correct SDK location
-echo "Creating android/local.properties..."
+echo "Ensuring android directory exists for local.properties..."
 mkdir -p android
-echo "sdk.dir=${ANDROID_SDK_ROOT}" > android/local.properties
-echo "Created android/local.properties with content:"
+echo "Creating/updating android/local.properties with sdk.dir=${ANDROID_HOME}"
+echo "sdk.dir=${ANDROID_HOME}" > android/local.properties
+echo "Contents of android/local.properties:"
 cat android/local.properties
+echo "Verifying existence and permissions of ${ANDROID_HOME}"
+ls -ld "${ANDROID_HOME}" || echo "Warning: ANDROID_HOME directory not found or permissions issue."
 
 # 2. Generate debug.keystore if it doesn't exist in the mounted source's android/app directory
 KEYSTORE_PATH="android/app/debug.keystore"
