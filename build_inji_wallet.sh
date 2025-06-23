@@ -155,6 +155,10 @@ export DEBUG_KEYSTORE_ALIAS=androiddebugkey
 export DEBUG_KEYSTORE_PASSWORD=android
 
 # 3. Install npm dependencies
+# Now running as non-root user 'nodeuser' (UID 1001), so npm will use /home/nodeuser/.npm
+# No need for chown /root/.npm or --unsafe-perm.
+echo "User context: $(id)"
+echo "NPM cache configured to: $(npm config get cache)" # Should be /home/nodeuser/.npm
 echo "Running npm install..."
 npm install
 

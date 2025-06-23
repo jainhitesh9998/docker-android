@@ -57,7 +57,20 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
 # Install Expo CLI globally
 RUN npm install -g expo-cli
 
-# Set up a working directory
+# Create a non-root user for npm and build processes
+# Using fixed UID/GID as suggested by npm error messages previously, ensuring consistency.
+# || true to prevent failure if GID/UID somehow exists (e.g. in a different base image)
+RUN groupadd -r -g 118 nodeuser || getent group 118 || groupadd -r -g 118 nodeuser
+RUN useradd -r -u 1001 -g 118 -m -s /bin/bash -d /home/nodeuser nodeuser || getent passwd 1001 || useradd -r -u 1001 -g 118 -m -s /bin/bash -d /home/nodeuser nodeuser
+
+# Pre-create and set permissions for npm's home directory data
+RUN mkdir -p /home/nodeuser/.npm && chown -R 1001:118 /home/nodeuser/.npm
+
+# Set up working directory and ensure it's writable by the new user
+RUN mkdir -p /app && chown -R 1001:118 /app
+
+# Switch to the non-root user
+USER nodeuser
 WORKDIR /app
 
 # (Optional) Copy your project's package.json and package-lock.json to leverage Docker caching
