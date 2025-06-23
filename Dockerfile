@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y \
 # Install Yarn
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update && apt-get install -y yarn
+    && apt-get update && apt-get install -y yarn \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Android SDK command-line tools
 RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools \
@@ -49,7 +51,8 @@ RUN sdkmanager "platforms;android-34" \
     "ndk;23.1.7779620" \
     "cmake;3.22.1" \
     "build-tools;33.0.0" \
-    "build-tools;30.0.3"
+    "build-tools;30.0.3" \
+    && rm -rf ${ANDROID_SDK_ROOT}/.downloadIntermediates
 
 # Install Node.js (you mentioned 16.x as default in your workflow, so this ensures it)
 # The `eclipse-temurin` image usually comes with Java, but we might need to update Node/npm.
@@ -57,14 +60,17 @@ RUN sdkmanager "platforms;android-34" \
 # but for a simple build, apt-get with a PPA is often sufficient.
 # Let's add NodeSource PPA for consistent Node.js versions
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Expo CLI globally
-RUN npm install -g expo-cli
+# Also clean npm cache after global install to reduce image size.
+RUN npm install -g expo-cli && npm cache clean --force
 
 # Create a non-root user for npm and build processes
 # Using fixed UID/GID as suggested by npm error messages previously, ensuring consistency.
-# || true to prevent failure if GID/UID somehow exists (e.g. in a different base image)
+# The complex '|| getent || add' logic aims for idempotency if UIDs/GIDs are already taken.
 RUN groupadd -r -g 118 nodeuser || getent group 118 || groupadd -r -g 118 nodeuser
 RUN useradd -r -u 1001 -g 118 -m -s /bin/bash -d /home/nodeuser nodeuser || getent passwd 1001 || useradd -r -u 1001 -g 118 -m -s /bin/bash -d /home/nodeuser nodeuser
 
