@@ -1,5 +1,6 @@
 # Use a base image with Ubuntu and OpenJDK (Java)
-FROM eclipse-temurin:11-jdk-focal # Using Java 11 as per your default, you can change it if needed
+FROM eclipse-temurin:11-jdk-focal 
+# Using Java 11 as per your default, you can change it if needed
 
 # Set environment variables for Android SDK
 ENV ANDROID_SDK_ROOT="/usr/local/android-sdk"
