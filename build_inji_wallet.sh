@@ -113,10 +113,16 @@ fi
 DOCKER_BUILD_COMMANDS=$(cat <<'EOF'
 set -e # Exit immediately if a command exits with a non-zero status.
 echo "--- Inside Docker Container ---"
-echo "Working directory: $(pwd)" # Should be /app/inji-wallet
+# Force ANDROID_SDK_ROOT to its known correct value from Dockerfile ENV
+# This ensures that even if it was passed incorrectly via -e, we use the one set in the image.
+export ANDROID_SDK_ROOT="/usr/local/android-sdk"
+export ANDROID_HOME="${ANDROID_SDK_ROOT}"
 
-echo "ANDROID_SDK_ROOT is: $ANDROID_SDK_ROOT"
-echo "JAVA_HOME is: $JAVA_HOME"
+echo "Working directory: $(pwd)" # Should be /app/inji-wallet
+echo "Ensured ANDROID_SDK_ROOT is: ${ANDROID_SDK_ROOT}"
+echo "Ensured ANDROID_HOME is: ${ANDROID_HOME}"
+echo "Initial JAVA_HOME (from Docker ENV): $JAVA_HOME"
+
 java -version
 node -v
 npm -v
@@ -124,11 +130,17 @@ yarn --version
 expo --version
 
 # 1. Ensure android/local.properties points to the correct SDK location
-echo "Creating android/local.properties..."
+echo "Current directory before creating local.properties: $(pwd)"
+echo "Ensuring android subdirectory exists..."
 mkdir -p android
-echo "sdk.dir=${ANDROID_SDK_ROOT}" > android/local.properties
-echo "Created android/local.properties with content:"
+echo "Creating/updating android/local.properties with sdk.dir=${ANDROID_HOME}"
+echo "sdk.dir=${ANDROID_HOME}" > android/local.properties
+echo "Contents of android/local.properties (full path: $(pwd)/android/local.properties):"
 cat android/local.properties
+echo "Verifying existence and permissions of SDK at ${ANDROID_HOME}:"
+ls -ld "${ANDROID_HOME}" || echo "Warning: ANDROID_HOME directory '${ANDROID_HOME}' not found or permissions issue."
+echo "Listing contents of ${ANDROID_HOME}/platforms (if any):"
+ls -la "${ANDROID_HOME}/platforms" || echo "Warning: No platforms directory found in SDK."
 
 # 2. Generate debug.keystore if it doesn't exist in the mounted source's android/app directory
 KEYSTORE_PATH="android/app/debug.keystore"
@@ -163,6 +175,16 @@ echo "Running npm install..."
 npm install
 
 # 4. Run the Android build command
+echo "Verifying environment before running build command..."
+echo "Current PWD: $(pwd)"
+echo "ANDROID_HOME: ${ANDROID_HOME}"
+echo "JAVA_HOME: ${JAVA_HOME}"
+echo "PATH: ${PATH}"
+echo "Listing all ANDROID related env vars:"
+env | grep ANDROID || echo "No ANDROID env vars found by grep."
+echo "Contents of android/local.properties one last time:"
+cat android/local.properties || echo "android/local.properties not found!"
+
 echo "Running npm run android:mosip..."
 # The Inji Wallet's package.json script for "android:mosip" might be:
 # "android:mosip": "cd android && ./gradlew clean && ./gradlew assembleMosipDebug && cd .."
