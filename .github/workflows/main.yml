@@ -27,5 +27,4 @@ jobs:
           context: . # Or specify the path to your Dockerfile, e.g., ./docker
           push: true
           tags: ghcr.io/${{ github.repository }}/android-build-env:latest
-          cache-from: type=gha # Cache Docker layers using GitHub Actions cache
-          cache-to: type=gha,mode=max
+
