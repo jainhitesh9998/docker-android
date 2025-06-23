@@ -10,6 +10,9 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions: # <--- ADD THIS BLOCK
+      contents: read
+      packages: write # <--- THIS IS CRUCIAL
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
