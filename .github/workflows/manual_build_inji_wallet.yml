@@ -1,0 +1,46 @@
+name: Manually Build Inji Wallet
+
+on:
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build-inji-wallet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout This Repository
+        uses: actions/checkout@v4
+        with:
+          # Ensure scripts are executable
+          fetch-depth: 0 # Required if your script relies on git history for image naming, though build_inji_wallet.sh has fallbacks
+
+      - name: Set up Docker Buildx (recommended for docker actions, though not strictly building here)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Make build script executable
+        run: chmod +x ./build_inji_wallet.sh
+
+      - name: Run Inji Wallet Build Script
+        env:
+          # The build_inji_wallet.sh script will attempt to construct this dynamically.
+          # Explicitly setting it here can be a fallback or override if dynamic detection fails in CI.
+          # DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/android-build-env:latest
+          # However, the script is designed to derive this from the git remote URL of the checked-out repo.
+          # For simplicity, we'll rely on the script's logic first.
+          # If issues arise, we can uncomment and refine the DOCKER_IMAGE env var above.
+          DEBIAN_FRONTEND: noninteractive # Suppress prompts during apt-get in script if any
+        run: |
+          echo "Starting the Inji Wallet build process..."
+          # The script by default will clone inji-wallet to ./inji-wallet-src
+          # and output artifacts to ./output
+          ./build_inji_wallet.sh
+          echo "Build script finished."
+          echo "Contents of output directory:"
+          ls -la ./output
+
+      - name: Upload Inji Wallet APKs
+        if: success() # Only run if the build script was successful
+        uses: actions/upload-artifact@v4
+        with:
+          name: inji-wallet-apks
+          path: ./output/*.apk
+          if-no-files-found: error # Error if no APKs are found to upload

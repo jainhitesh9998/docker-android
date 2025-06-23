@@ -1,12 +1,11 @@
-# Use a base image with Ubuntu and OpenJDK (Java)
-FROM eclipse-temurin:11-jdk-focal 
-# Using Java 11 as per your default, you can change it if needed
+# Use a base image with Ubuntu and OpenJDK (Java 17)
+FROM eclipse-temurin:17-jdk-focal
 
 # Set environment variables for Android SDK
 ENV ANDROID_SDK_ROOT="/usr/local/android-sdk"
 ENV PATH="${PATH}:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools"
 
-# Install necessary packages
+# Install necessary packages, including curl for yarn setup
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
@@ -18,8 +17,15 @@ RUN apt-get update && apt-get install -y \
     zlib1g \
     libncurses5 \
     libncurses6 \
+    curl \
+    gnupg \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && apt-get install -y yarn
 
 # Install Android SDK command-line tools
 RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools \
@@ -47,6 +53,9 @@ RUN sdkmanager "platforms;android-34" \
 # Let's add NodeSource PPA for consistent Node.js versions
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get install -y nodejs
+
+# Install Expo CLI globally
+RUN npm install -g expo-cli
 
 # Set up a working directory
 WORKDIR /app
